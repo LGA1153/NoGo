@@ -1,8 +1,4 @@
-/*
-Bot中MCTS的部分摘自GitHub上开源代码,并略有加工整合入程序
-https://github.com/lwh9346/NoGoBot
-*/
-#include "MCTS_treeNode.cpp"
+#include "./mcts/bot.cpp"
 #include <algorithm>
 #include <cmath>
 #include <cstring>
@@ -50,7 +46,6 @@ private:
   int selectNodes(botBoard &b, node selected[MINMAX_NODE_NUM]);
   int min_max(botBoard &b, int lev, bool player, int alpha_beta[2]);
   void dynamicLevel(botBoard &b);
-  void memoryClean(treeNode *Node);
   void AlphaBeta(int &x, int &y);
   void greed(int &x, int &y);
   void random(int &x, int &y);
@@ -304,14 +299,6 @@ void bot::dynamicLevel(botBoard &b) {
   return;
 }
 
-void bot::memoryClean(treeNode *Node) {
-  for (int i = 0; i < Node->childrenCount; i++) {
-    memoryClean(Node->children[i]);
-  }
-  delete Node;
-  return;
-}
-
 void bot::AlphaBeta(int &x, int &y) {
   extern int board[9][9];
   extern int rnd;
@@ -399,56 +386,15 @@ void bot::random(int &x, int &y) {
 }
 
 void bot::MCTS(int &x, int &y) {
-  //计数器与棋盘声明，随机数初始化
-  int count = 0;
-  int MCTS_Board[9][9] = {0};
-  srand(clock());
-  extern int board[9][9];
-  extern int rnd;
-  for (int i = 0; i < 9; i++) {
-    for (int j = 0; j < 9; j++) {
-      MCTS_Board[i][j] = ((rnd % 2) ? -1 : 1) * board[j][i];
+    signed char boardForMCTS[81] = {0};
+    extern int board[9][9];
+    extern int rnd;
+    for (int i = 0; i < 81; i++) {
+        boardForMCTS[i] = (rnd % 2 == 1) ? board[i / 9][i % 9] : -board[i / 9][i % 9];
     }
-  }
-  int timeout;
-  extern int goneTurn;
-  if (MCTS_mengxin && goneTurn > 2) {
-    timeout = int(inputStart - lastInputEnd);
-  } else {
-    timeout = (int)(MCTS_TIME_LIMIT * (double)CLOCKS_PER_SEC);
-  }
-
-  int actionR[2] = {y, x};
-
-  //创建蒙特卡洛树根节点
-  treeNode root(MCTS_Board, actionR, nullptr, &count);
-
-  //开始蒙特卡洛树搜索
-  while (clock() - inputStart < timeout) {
-    count++;
-    treeNode *node = root.treePolicy();
-    double result = node->defultPolicy();
-    node->backup(result);
-  }
-
-  //选取最佳节点作为下一步
-  int max = 0;
-  int maxI = 0;
-  int *bestAction = root.childrenAction[0];
-  for (int i = 0; i < root.childrenCount; i++) {
-    if (max < root.children[i]->n) {
-      maxI = i;
-      max = root.children[i]->n;
-      bestAction = root.childrenAction[i];
-    }
-  }
-  x = bestAction[1];
-  y = bestAction[0];
-  //delete申请的节点,防止内存泄漏
-  for (int i = 0; i < root.childrenCount; i++) {
-    memoryClean(root.children[i]);
-  }
-  return;
+    int bestAction = mcts::GetBestAction(boardForMCTS, (double)MCTS_TIME_LIMIT, nullptr);
+    x = bestAction / 9;
+    y = bestAction % 9;
 }
 
 void bot::input(int &x, int &y) {
