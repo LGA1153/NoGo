@@ -1,82 +1,129 @@
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 using namespace std;
 
 extern int board[9][9];
 extern int rnd;
+extern int x, y;
 
-string chess(int c)
-{
-    switch (c)
-    {
+string chess(int c) {
+  switch (c) {
     case 1:
-        return "â—‹";
+      return "¨T¡ğ";
     case -1:
-        return "â—";
+      return "¨T¡ñ";
     case 0:
-        return "â•¬";
-    }
-    return 0;
+      return "¨T¨p¨T";
+  }
+  return 0;
 }
 
-void printStartMenu()
-{
-    cout << "â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”\n"
-         << "â”‚                                           â”‚\n"
-         << "â”‚                  ä¸ å›´ æ£‹                 â”‚\n"
-         << "â”‚                    NoGo                   â”‚\n"
-         << "â”‚                                           â”‚\n"
-         << "â”‚ver 1.0                              by zslâ”‚\n"
-         << "â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜\n"
-         << "è¯·è¾“å…¥é€‰é¡¹:\n0.é€€å‡ºæ¸¸æˆ\n1.å¼€å§‹æ–°æ¸¸æˆ\n2.åŠ è½½å­˜æ¡£\n"
-         << endl;
-    return;
+void printStartMenu() {
+  cout << 
+"©°©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©´\n"
+"©¦                   :Qr                                                                         BBB7                  ©¦\n"
+"©¦                   BBQ7ir:.               bv                   :BBB:                           iBBBi                 ©¦\n"
+"©¦            S7   rEBQBMZqBBBQ           2BB     iL            7BBBBM                Xr          qBBB                 ©¦\n"
+"©¦            PQBBBB7iBP   BBBB          7BBBsEBBBBQBX        :BBBR1i                 RBBr        .BBB                 ©¦\n"
+"©¦             gBBBB.JQBBBBBBg           BBBQBBivBBBBBQ       sBQBq                   .BBBD        BBB                 ©¦\n"
+"©¦              2BBQDPBP.i5X:  ..       rBBBs   BBU  Id          .BBi                  qBBBB.      BBB                 ©¦\n"
+"©¦               .UQi5QgsssuXBBBQQ       BBr  :BBi               .RBBBB7     ir        :BBBBQ      BBB                 ©¦\n"
+"©¦          :XdBBBBBBLLJPUJ.     .          sEBBBRBb           rBBBQBB7 : rBBBBB5       BBB:      .BBB                 ©¦\n"
+"©¦          iBBP .BBB2si.ZQBB              BBBQ.7BBr          DBB PBQQ :BBQg.:BBBL      BBB vBBq  iBBj                 ©¦\n"
+"©¦                RBBsXBB  BQB             P gBBPBBBr         7BD  BQBBBBBBE  1BQB       QBB.IBBBg EBBR                ©¦\n"
+"©¦                BBB .Bg  BBQ            5 PBq:..EBs         BB  BBBQBv.BBBuBBBBP       BBQBBBBBQ QBBBQ.              ©¦\n"
+"©¦              rQBB.PBI  BBB           r.JBB:r5BBQ71.r.     PB.:BBRBB  dBBBQBBB       QBQBBs RBBQBBigBBR.             ©¦\n"
+"©¦              :BBBYrsg  BBQ           s7Bdrrr:.. v  BBB     sd   SBB   jY   r      JBBQBBB    gBBJ rBBBBE            ©¦\n"
+"©¦               BBBQBBB  BB:          7BBBquPQBBu PBQBBE        jBBBB               uBBBB5    bBQ7  EBBBBB:           ©¦\n"
+"©¦                iKQB1  BQD           BBB .Di   :ZjBBBB          SBBY                .BB:   rBBB:    .ZBBBB           ©¦\n"
+"©¦                ZBD    :BBR          UB:       .dBBBQ            :                        MBBR        :BBB           ©¦\n"
+"©¦             rBQ.       L.                                                               .r.           v             ©¦\n"
+"©¦                                                       ²» Î§ Æå                                                      ©¦\n"
+"©¦                                                         NoGo                                                        ©¦\n"
+"©¦ver 2.0                                                                                                        by zsl©¦\n"
+"©¸©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¼\n"
+          "ÇëÊäÈëÑ¡Ïî: "
+          "0.ÍË³öÓÎÏ· "
+          "1.¿ªÊ¼ĞÂÓÎÏ· "
+          "2.¼ÓÔØ´æµµ "
+          "3.²é¿´ÓÎÏ·¹æÔò\n"
+       << endl;
+  return;
 }
 
-void printInput()
-{
-    cout << "è¯·ä¾æ¬¡è¾“å…¥ä½ æƒ³ä¸‹å­ä½ç½®çš„è¡ŒæŒ‡æ ‡å’Œåˆ—æŒ‡æ ‡,æˆ–è€…è¾“å…¥\"-1 0\"ä»¥å›åˆ°\n"
-         << "å¼€å§‹èœå•,è¾“å…¥\"-1 1\"ä¿å­˜å½“å‰æ¸¸æˆ,è¾“å…¥\"-1 2\"è¯»å–ä¿å­˜çš„æ¸¸æˆ.\n"
-         << endl;
-    cout << "     0  1  2  3  4  5  6  7  8   \n"
-         << "  â•”â•â•â•¦â•â•â•¦â•â•â•¦â•â•â•¦â•â•â•¦â•â•â•¦â•â•â•¦â•â•â•¦â•â•â•¦â•â•â•—\n";
-    for (int i = 0; i < 9; i++)
-    {
-        cout << i << " â• â•â•" << chess(board[i][0]) << "â•â•" << chess(board[i][1]) << "â•â•"
-             << chess(board[i][2]) << "â•â•" << chess(board[i][3]) << "â•â•" << chess(board[i][4]) << "â•â•"
-             << chess(board[i][5]) << "â•â•" << chess(board[i][6]) << "â•â•" << chess(board[i][7]) << "â•â•"
-             << chess(board[i][8]) << "â•â•â•£" << '\n';
-    }
-    cout << "  â•šâ•â•â•©â•â•â•©â•â•â•©â•â•â•©â•â•â•©â•â•â•©â•â•â•©â•â•â•©â•â•â•©â•â•â•\n\n";
-    cout << "å½“å‰æ˜¯ç¬¬ " << rnd << " æ‰‹" << endl;
-    return;
+void printBoard() {
+  cout << "      0  1  2  3  4  5  6  7  8  \n"
+          "  ¨X¨T¨T¨j¨T¨T¨j¨T¨T¨j¨T¨T¨j¨T¨T¨j¨T¨T¨j¨T¨T¨j¨T¨T¨j¨T¨T¨j¨T¨T¨[\n";
+  for (int i = 0; i < 9; i++) {
+    cout << i << " ¨d¨T" << chess(board[0][i]) << chess(board[1][i])
+         << chess(board[2][i]) << chess(board[3][i]) << chess(board[4][i])
+         << chess(board[5][i]) << chess(board[6][i]) << chess(board[7][i])
+         << chess(board[8][i]) << "¨T¨g" << '\n';
+  }
+  cout << "  ¨^¨T¨T¨m¨T¨T¨m¨T¨T¨m¨T¨T¨m¨T¨T¨m¨T¨T¨m¨T¨T¨m¨T¨T¨m¨T¨T¨m¨T¨T¨a\n";
+  cout << "µ±Ç°ÊÇµÚ " << rnd << " ÊÖ" << endl;
+  if(rnd > 1) cout << "ÉÏÒ»Âä×ÓÎ»ÖÃÎª " << x << " ÁĞ " << y << " ĞĞ\n" << endl;
+  return;
 }
 
-void printLoad(savedGame sav[10])
-{
-    cout << "è¯·è¾“å…¥ä½ æƒ³åŠ è½½å­˜æ¡£çš„ç¼–å·:\n"
-         << endl;
-    cout << setw(6) << "ç¼–å·" << setw(22) << "åç§°" << setw(21) << "ä¿å­˜æ—¶é—´" << setw(6) << "æ‰‹æ•°" << endl;
-    for (int i = 0; i < 10; i++)
-    {
-        if (!sav[i].empty)
-        {
-            cout << setw(6) << i << setw(22) << sav[i].name << setw(21) << sav[i].time << setw(6) << sav[i].rnd << endl;
-        }
-    }
-    cout << "\nè¾“å…¥-1é€€å›ä¸Šä¸€ç•Œé¢." << endl;
-    return;
+void printInput() {
+  cout << "ÇëÒÀ´ÎÊäÈëÄãÏëÏÂ×ÓÎ»ÖÃµÄÁĞÖ¸±êºÍĞĞÖ¸±ê,»òÕßÊäÈë\"-1 0\"ÒÔ»Øµ½\n"
+          "¿ªÊ¼²Ëµ¥,ÊäÈë\"-1 1\"±£´æµ±Ç°ÓÎÏ·,ÊäÈë\"-1 2\"¶ÁÈ¡±£´æµÄÓÎÏ·,\n"
+          "ÊäÈë-1 3²é¿´ÓÎÏ·¹æÔò."
+       << endl;
+  return;
 }
 
-void printSave(savedGame sav[10])
-{
-    cout << "è¯·è¾“å…¥ä½ æƒ³å­˜å…¥æ¸¸æˆçš„å­˜æ¡£ç¼–å·:\n"
-         << endl;
-    cout << setw(6) << "ç¼–å·" << setw(22) << "åç§°" << setw(21) << "ä¿å­˜æ—¶é—´" << setw(6) << "æ‰‹æ•°" << endl;
-    for (int i = 0; i < 10; i++)
-    {
-        cout << setw(6) << i << setw(22) << sav[i].name << setw(21) << sav[i].time << setw(6) << sav[i].rnd << endl;
+void printLoad(Json::Value sav[10]) {
+  cout << "ÇëÊäÈëÄãÏë¼ÓÔØ´æµµµÄ±àºÅ:\n" << endl;
+  cout << setw(6) << "±àºÅ" << setw(22) << "Ãû³Æ" << setw(21) << "±£´æÊ±¼ä"
+       << setw(6) << "»ØºÏ" << endl;
+  for (int i = 0; i < 10; i++) {
+    if (!sav[i].empty()) {
+      cout << setw(6) << i << setw(22) << sav[i]["name"].asString() << setw(21)
+           << sav[i]["time"].asCString() << setw(6) << sav[i]["rnd"].asInt()
+           << endl;
     }
-    cout << "\nè¾“å…¥-1å›åˆ°ä¸Šä¸€ç•Œé¢." << endl;
-    return;
+  }
+  cout << "\nÊäÈë-1ÍË»ØÉÏÒ»½çÃæ." << endl;
+  return;
+}
+
+void printSave(Json::Value sav[10]) {
+  cout << "ÇëÊäÈëÄãÏë´æÈëÓÎÏ·µÄ´æµµ±àºÅ:\n" << endl;
+  cout << setw(6) << "±àºÅ" << setw(22) << "Ãû³Æ" << setw(21) << "±£´æÊ±¼ä"
+       << setw(6) << "»ØºÏ" << endl;
+  for (int i = 0; i < 10; i++) {
+    if (sav[i].empty()) {
+      cout << setw(6) << i << setw(22) << ' ' << setw(21) << "¿Õ´æµµ" << setw(6)
+           << ' ' << endl;
+    } else {
+      cout << setw(6) << i << setw(22) << sav[i]["name"].asString() << setw(21)
+           << sav[i]["time"].asString() << setw(6) << sav[i]["rnd"].asInt()
+           << endl;
+    }
+  }
+  cout << "\nÊäÈë-1»Øµ½ÉÏÒ»½çÃæ." << endl;
+  return;
+}
+
+void printHelp() {
+  cout << "NoGo(²»Î§Æå),"
+          "ÓÉÎ§ÆåÑÜÉú¶øÀ´£¬ÊôÓÚÁ½ÈËÁãºÍÍê±¸ĞÅÏ¢²©ŞÄ£¬¹æÔòÓëÎ§ÆåÏà·´¡£\n"
+          "ÆåÅÌ£ºÓë9*9Î§ÆåÆåÅÌÏàÍ¬(×ø±ê´Ó0¿ªÊ¼£¬ÏÈxºóy, Ô­µãÔÚ×óÉÏ½Ç)\n"
+          "1. ÆåÅÌÍ¬¾ÅÂ·Î§ÆåÆåÅÌ£¬9¡Á9£»\n"
+          "2. ºÚ×ÓÏÈÊÖ£¬Ë«·½ÂÖÁ÷Âä×Ó£¬Âä×ÓºóÆå×Ó²»¿ÉÒÆ¶¯£»\n"
+          "3. ¶ÔŞÄµÄÄ¿±ê²»ÊÇ³Ôµô¶Ô·½µÄÆå×Ó\n"
+          "4. Ç¡Ç¡Ïà·´£¬Èç¹ûÒ»·½Âä×Óºó³ÔµôÁË¶Ô·½µÄÆå×Ó£¬ÔòÂä×ÓÒ»·½ÅĞ¸º£»\n"
+          "5. ¶ÔŞÄ½ûÖ¹×ÔÉ±£¬Âä×Ó×ÔÉ±Ò»·½ÅĞ¸º£»\n"
+          "6. ¶ÔŞÄ½ûÖ¹¿ÕÊÖ(pass)£¬¿ÕÊÖÒ»·½ÅĞ¸º£»\n"
+          "7. ¶ÔŞÄ½á¹ûÖ»ÓĞÊ¤¸º£¬Ã»ÓĞºÍÆå¡£\n"
+          "8£®³Ô×Ó¶¨Òå£ºÒ»¸öÆå×ÓÔÚÆåÅÌÉÏ£¬ÓëËüÖ±Ïß½ôÁÚµÄ¿ÕµãÊÇÕâ¸öÆå×ÓµÄ¡°Æø¡±¡£ "
+          "Æå×ÓÖ±Ïß½ôÁÚµÄµãÉÏ£¬Èç¹ûÓĞÍ¬É«Æå×Ó´æÔÚ£¬ÔòËüÃÇ±ãÏà»¥Á¬½Ó³ÉÒ»¸ö²»¿É·Ö"
+          "¸îµÄÕûÌå¡£ËüÃÇµÄÆøÒ²Ó¦Ò»²¢¼ÆËã¡£ "
+          "Æå×ÓÖ±Ïß½ôÁÚµÄµãÉÏ£¬Èç¹ûÓĞÒìÉ«Æå×Ó´æÔÚ£¬Õâ¿ÚÆø¾Í²»¸´´æÔÚ¡£ÈçËùÓĞµÄÆø"
+          "¾ùÎª¶Ô·½ËùÕ¼¾İ£¬±ã³ÊÎŞÆø×´Ì¬¡£ÎŞÆø×´Ì¬µÄÆå×Ó²»ÄÜÔÚÆåÅÌÉÏ´æÔÚ£¬Ò²¾ÍÊÇ"
+          "Ìá×Ó¡£°ÑÎŞÆøÖ®×ÓÌá³öÅÌÍâµÄÊÖ¶Î½Ğ¡°Ìá×Ó¡±\n"
+       << endl;
+  return;
 }

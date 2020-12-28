@@ -1,242 +1,258 @@
-#include <iostream>
-#include <fstream>
 #include <ctime>
+#include <fstream>
+#include <iostream>
+
+#include "bot.cpp"
+#include "game.cpp"
+#include "jsoncpp/json.h"
 #include "print.cpp"
 #include "saveload.cpp"
-#include "game.cpp"
 using namespace std;
 
-extern int board[9][9];
-extern int invalidPlace[2][9][9];
-extern int rnd;
+int rnd;
+int board[9][9]; // 1:ºÚ -1:°× 0:¿Õ
+int previous;
+int goneTurn = 0;
+bool isBot[2];
+int invalidPlace[2][9]
+                [9]; //[2]0±íÊ¾ºÚ×Ó,1±íÊ¾°××Ó,´¢´æÊý 0:¿É×ß 1:ÒÑÓÐÆå×Ó 2:×ÔÉ±
 extern int interface;
-extern int previous;
-extern bool player;
-extern bool computerOpponent;
+extern bot bot1;
+extern bot bot2;
+int x, y;
 
-void IF_startMenu()
-{
-    int optTmp;
-    printStartMenu();
-    cin >> optTmp; //0:exit 1:new game 2:load save
+void IF_startMenu() {
+  int optTmp;
+  printStartMenu();
+  cin >> optTmp;
+  cin.ignore(1024, '\n');
+  while (optTmp < 0 || optTmp > 3) {
+    cout << "ÇëÊäÈëºÏ·¨Ñ¡Ïî!" << endl;
+    cin >> optTmp;
     cin.ignore(1024, '\n');
-    while (optTmp < 0 || optTmp > 2)
-    {
-        cout << "Please enter a valid option!" << endl;
-        cin >> optTmp;
-        cin.ignore(1024, '\n');
-    }
-
+  }
+  switch (optTmp) {
+  case 0:
+    interface = -1;
+    break;
+  case 3:
+    interface = 5;
+    break;
+  default:
     interface = optTmp;
-    if (interface == 0)
-    {
-        interface = -1;
-    }
-    previous = 0;
-    //system("cls");
-    return;
+    break;
+  }
+  previous = 0;
+  system("cls");
+  return;
 }
 
-void IF_load()
-{
-    fstream savFile;
-    savFile.open("sav.dat", ios::in);
-    if (!savFile.is_open())
-    {
-        cout << "Error:Cannot open saved games!" << endl;
-        cout << "Do you want to create a new save file? Yes:1 No:0" << endl;
-        bool choice;
-        cin >> choice;
-        cin.ignore(1024, '\n');
-        if (choice)
-        {
-            savInit(savFile);
-            cout << "A new save file has been created!" << endl;
-            //system("pause");
-        }
-        //system("cls");
-        interface = previous;
-        return;
+void IF_load() {
+  fstream savFile;
+  savFile.open("sav.dat", ios::in);
+  if (!savFile.is_open()) {
+    cout << "´íÎó:ÎÞ·¨´ò¿ª´æµµ!" << endl;
+    cout << "ÊÇ·ñ´´½¨ÐÂ´æµµÎÄ¼þ? ÊÇ:1 ·ñ:0" << endl;
+    bool choice;
+    cin >> choice;
+    cin.ignore(1024, '\n');
+    if (choice) {
+      savInit(savFile);
+      cout << "ÐÂ´æµµÒÑ´´½¨!" << endl;
+      system("pause");
     }
-    savedGame sav[10];
-    bool exist = false;
-    load(sav, savFile);
-    for (int i = 0; i < 10; i++)
-    {
-        exist = exist || !sav[i].empty;
-    }
-    savFile.close();
-    if (!exist)
-    {
-        cout << "Error:No saved game exists!" << endl;
-        //system("pause");
-        //system("cls");
-        interface = previous;
-        return;
-    }
-    printLoad(sav);
-    int index;
+    system("cls");
+    interface = previous;
+    return;
+  }
+  Json::Value sav[10];
+  bool exist = false;
+  load(sav, savFile);
+  for (int i = 0; i < 10; i++) {
+    exist = exist || !sav[i]["empty"].asBool();
+  }
+  savFile.close();
+  if (!exist) {
+    cout << "´íÎó:²»´æÔÚ±£´æµÄÓÎÏ·!" << endl;
+    system("pause");
+    system("cls");
+    interface = previous;
+    return;
+  }
+  printLoad(sav);
+  int index;
+  cin >> index;
+  cin.ignore(1024, '\n');
+  while (index < -1 || index > 9 || (index > -1 && sav[index].empty())) {
+    cout << "ÇëÊäÈëÓÐÐ§Êý×Ö!" << endl;
     cin >> index;
     cin.ignore(1024, '\n');
-    while (index < -1 || index > 9 || sav[index].empty)
-    {
-        cout << "Invalid input!" << endl;
-        cin >> index;
-        cin.ignore(1024, '\n');
-    }
-    if (index == -1)
-    {
-        //system("cls");
-        interface = previous;
-        return;
-    }
-    boardCopy(sav[index].savBoard, board);
-    computerOpponent = sav[index].computer;
-    player = sav[index].player;
-    rnd = sav[index].rnd;
-    memset(invalidPlace, 0, 2 * 9 * 9 * sizeof(int));
-    rnd++;
-    validCheck();
-    rnd--;
-    validCheck();
-    //system("cls");
-    interface = 4;
+  }
+  if (index == -1) {
+    system("cls");
+    interface = previous;
     return;
+  }
+  saveToGame(sav[index]);
+  goneTurn = 0;
+  system("cls");
+  interface = 4;
+  return;
 }
 
-void IF_save()
-{
-    fstream savFile;
-    savFile.open("sav.dat", ios::in);
-    if (!savFile.is_open())
-    {
-        cout << "é”™è¯¯:æ— æ³•æ‰“å¼€å­˜å‚¨çš„æ¸¸æˆ!" << endl;
-        cout << "ä½ æ˜¯å¦æƒ³è¦åˆ›å»ºä¸€ä¸ªæ–°çš„å­˜æ¡£æ–‡ä»¶?\næ˜¯:1 å¦:0" << endl;
-        bool choice;
-        cin >> choice;
-        if (choice)
-        {
-            savInit(savFile);
-            cout << "æ–°å­˜æ¡£æ–‡ä»¶åˆ›å»ºæˆåŠŸ!" << endl;
-            //system("pause");
-        }
-        //system("cls");
-        interface = 4;
-        return;
+void IF_save() {
+  fstream savFile;
+  savFile.open("sav.dat", ios::in);
+  if (!savFile.is_open()) {
+    cout << "´íÎó:ÎÞ·¨´ò¿ª´æ´¢µÄÓÎÏ·!" << endl;
+    cout << "ÄãÊÇ·ñÏëÒª´´½¨Ò»¸öÐÂµÄ´æµµÎÄ¼þ?\nÊÇ:1 ·ñ:0" << endl;
+    bool choice;
+    cin >> choice;
+    if (choice) {
+      savInit(savFile);
+      cout << "ÐÂ´æµµÎÄ¼þ´´½¨³É¹¦!" << endl;
+      system("pause");
     }
-    savedGame sav[10];
-    load(sav, savFile);
-    savFile.close();
-    printSave(sav);
-    int index;
+    system("cls");
+    interface = 4;
+    return;
+  }
+  Json::Value sav[10];
+  load(sav, savFile);
+  savFile.close();
+  printSave(sav);
+  int index;
+  cin >> index;
+  cin.ignore(1024, '\n');
+  while (index < -1 || index > 9) {
+    cout << "ÇëÊäÈëºÏ·¨µÄÖ¸±ê!" << endl;
     cin >> index;
-    cin.ignore(1024,'\n');
-    while (index < -1 || index > 9)
-    {
-        cout << "è¯·è¾“å…¥åˆæ³•çš„æŒ‡æ ‡!" << endl;
-        cin >> index;
-        cin.ignore(1024,'\n');
-    }
-    if (index == -1)
-    {
-        //system("cls");
-        interface = 4;
-        return;
-    }
-    boardCopy(board, sav[index].savBoard);
-    sav[index].computer = computerOpponent;
-    sav[index].player = player;
-    sav[index].rnd = rnd;
-    sav[index].empty = false;
-    string name;
-    cout << "è¯·è¾“å…¥å­˜æ¡£åç§°(ä¸Šé™20å­—ç¬¦):" << endl;
-    cin.ignore();
+    cin.ignore(1024, '\n');
+  }
+  if (index == -1) {
+    system("cls");
+    interface = 4;
+    return;
+  }
+  string name;
+  cout << "ÇëÊäÈë´æµµÃû³Æ(ÉÏÏÞ20×Ö·û):" << endl;
+  getline(cin, name);
+  while (name.length() > 20) {
+    cout << "ÇëÊäÈëÒ»¸öºÏ·¨µÄÃû×Ö!" << endl;
     getline(cin, name);
-    while (name.length() > 20)
-    {
-        cout << "è¯·è¾“å…¥ä¸€ä¸ªåˆæ³•çš„åå­—!" << endl;
-        getline(cin, name);
-    }
-    sav[index].name = name;
-    time_t rawt;
-    tm *t;
-    time(&rawt);
-    t = localtime(&rawt);
-    strftime(sav[index].time, 20, "%Y-%m-%d %H:%M:%S", t);
-    savFile.open("sav.dat", ios::out);
-    save(sav, savFile);
-    savFile.close();
-    cout << "ä¿å­˜æˆåŠŸ!" << endl;
-    //system("pause");
-    //system("cls");
-    interface = 4;
-    return;
+  }
+  sav[index]["name"] = name;
+  time_t rawt;
+  tm *t;
+  char savTime[20];
+  time(&rawt);
+  t = localtime(&rawt);
+  strftime(savTime, 20, "%Y-%m-%d %H:%M:%S", t);
+  sav[index]["time"] = savTime;
+  savFile.open("sav.dat", ios::out);
+  gameToSave(sav[index]);
+  save(sav, savFile);
+  savFile.close();
+  cout << "±£´æ³É¹¦!" << endl;
+  system("pause");
+  system("cls");
+  interface = 4;
+  return;
 }
 
-void IF_newGame()
-{
-    memset(board, 0, 9 * 9 * sizeof(int));
-    memset(invalidPlace, 0, 2 * 9 * 9 * sizeof(int));
-    rnd = 1;
-    cout << "æ¸¸æˆè®¾å®š:" << endl;
-    cout << "çŽ©å®¶2(å¯¹æ‰‹)æ˜¯ç”µè„‘è¿˜æ˜¯äººç±»?\nç”µè„‘:1 äººç±»:0" << endl;
-    cin >> computerOpponent;
-    cin.ignore(1024,'\n');
-    cout << "çŽ©å®¶1(ä½ )å…ˆæ‰‹?\næ˜¯:1 å¦:0" << endl;
-    cin >> player;
-    cin.ignore(1024,'\n');
-    //system("cls");
-    interface = 4;
-    return;
+void IF_newGame() {
+  memset(board, 0, 9 * 9 * sizeof(int));
+  memset(invalidPlace, 0, 2 * 9 * 9 * sizeof(int));
+  rnd = 1;
+  goneTurn = 0;
+  cout << "ÓÎÏ·Éè¶¨:" << endl;
+  cout << "Íæ¼Ò1(ºÚ×Ó)ÊÇµçÄÔ»¹ÊÇÈËÀà?\nµçÄÔ:1 ÈËÀà:0" << endl;
+  cin >> isBot[0];
+  cin.ignore(1024, '\n');
+  if (isBot[0]) {
+    int mode = 0;
+    cout << "ÇëÊäÈëµçÄÔË®Æ½ Ëæ»ú:0 ¼òµ¥:1 ÆÕÍ¨:2 À§ÄÑ:3 ÃÈÐÂ:4" << endl;
+    do {
+      if (mode < 0 || mode > 4)
+        cout << "ÇëÊäÈëÓÐÐ§Öµ!" << endl;
+      cin >> mode;
+      cin.ignore(1024, '\n');
+    } while (mode < 0 || mode > 4);
+    bot1.init(mode);
+  }
+  cout << "Íæ¼Ò2(°××Ó)ÊÇµçÄÔ»¹ÊÇÈËÀà?\nµçÄÔ:1 ÈËÀà:0" << endl;
+  cin >> isBot[1];
+  cin.ignore(1024, '\n');
+  if (isBot[1]) {
+    int mode = 0;
+    cout << "ÇëÊäÈëµçÄÔË®Æ½ Ëæ»ú:0 ¼òµ¥:1 ÆÕÍ¨:2 À§ÄÑ:3 ÃÈÐÂ:4" << endl;
+    do {
+      if (mode < 0 || mode > 4)
+        cout << "ÇëÊäÈëÓÐÐ§Öµ!" << endl;
+      cin >> mode;
+      cin.ignore(1024, '\n');
+    } while (mode < 0 || mode > 4);
+    bot2.init(mode);
+  }
+  system("cls");
+  interface = 4;
+  return;
 }
 
-void IF_game()
-{
-    int x, y;
-    if (computerOpponent && (rnd + player) % 2)
-    {
-        computerInput(x, y);
+void IF_game() {
+  bool blackWhiteTurn = rnd % 2; // t:ºÚ f:°×
+  printBoard();
+  if (blackWhiteTurn && isBot[0]) {
+    cout << "µÈ´ýµçÄÔ¾ö²ßÖÐ......" << endl;
+    bot1.input(x, y);
+  } else if (!blackWhiteTurn && isBot[1]) {
+    cout << "µÈ´ýµçÄÔ¾ö²ßÖÐ......" << endl;
+    bot2.input(x, y);
+  } else {
+    playerInput(x, y);
+  }
+  if (x == -1) {
+    switch (y) {
+    case 0:
+      interface = 0;
+      break;
+    case 1:
+      interface = 3;
+      break;
+    case 2:
+      interface = 2;
+      break;
+    case 3:
+      interface = 5;
+      break;
     }
-    else
-    {
-        playerInput(x, y);
-    }
-    if (x == -1)
-    {
-        switch (y)
-        {
-        case 0:
-            interface = 0;
-            break;
-        case 1:
-            interface = 3;
-            break;
-        case 2:
-            interface = 2;
-            break;
-        }
-        previous = 4;
-        //system("cls");
-        return;
-    }
-    board[x][y] = (rnd % 2) ? 1 : -1;
-    validCheck();
-    if (judge())
-    {
-        //system("cls");
-        printInput();
-        cout << x << ' ' << y << endl;
-        string winner = (rnd % 2) ? "é»‘æ–¹" : "ç™½æ–¹";
-        cout << winner << "çŽ©å®¶èŽ·èƒœ!" << endl;
-        //system("pause");
-        //system("cls");
-        interface = 0;
-        return;
-    }
-    rnd++;
-    if (!(computerOpponent && (rnd + player) % 2))
-    {
-        //system("cls");
-    }
+    previous = 4;
+    system("cls");
     return;
+  }
+  board[x][y] = blackWhiteTurn ? 1 : -1;
+  validCheck();
+  if (judge()) {
+    system("cls");
+    printBoard();
+    cout << x << ' ' << y << endl;
+    string winner = (blackWhiteTurn) ? "ºÚ·½" : "°×·½";
+    cout << winner << "Íæ¼Ò»ñÊ¤!" << endl;
+    system("pause");
+    system("cls");
+    interface = 0;
+    return;
+  }
+  rnd++;
+  goneTurn++;
+  system("cls");
+  return;
+}
+
+void IF_help() {
+  printHelp();
+  system("pause");
+  system("cls");
+  interface = previous;
+  return;
 }
