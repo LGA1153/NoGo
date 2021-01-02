@@ -1,6 +1,7 @@
 #pragma GCC optimize(3)
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <ctime>
 #include <iostream>
 
@@ -10,25 +11,26 @@ using namespace std;
 const int INF = 1 << 30;
 clock_t startTime;
 
-struct board {
-  int board[9][9] = {0};
-  int qi[9][9] = {0};
-  bool invalid[2][9][9] = {false};
+struct board {  //不初始化以节约时间,其实只有第一个board需要初始化
+  int board[9][9];
+  int qi[9][9];
+  bool invalid[2][9][9];
   int turn;
   bool player;
-  int invalidNum[2] = {0, 0};
+  int invalidNum[2];
   int preX;
   int preY;
 };
 
 struct treeNode {
-  treeNode* branch[81] = {nullptr};
+  treeNode* branch[81];
   board nodeBoard;
   int branchNum = 0;
   double visitedTimes = 0;
   double value;
 };
 
+//深搜求气
 void dfsQi(int x, int y, int& qi, int& cnt, bool searched[9][9], int color,
            int boardBoard[9][9], int chessPos[41][2]) {
   if ((x == -1 || x == 9 || y == -1 || y == 9) || searched[x][y] ||
@@ -50,6 +52,7 @@ void dfsQi(int x, int y, int& qi, int& cnt, bool searched[9][9], int color,
   return;
 }
 
+//深搜求一个棋块的气并写入盘面
 void dfsQi_init(int x, int y, board& b) {
   int color = b.board[x][y];
   int qi = 0, cnt = 0;
@@ -63,6 +66,7 @@ void dfsQi_init(int x, int y, board& b) {
   return;
 }
 
+//更新气
 void dfsQi_update(int x, int y, board& b, bool searched[9][9], int newQi,
                   int color) {
   if ((x == -1 || x == 9 || y == -1 || y == 9) || searched[x][y] ||
@@ -78,6 +82,7 @@ void dfsQi_update(int x, int y, board& b, bool searched[9][9], int newQi,
   return;
 }
 
+//检查一个点对双方的可走性
 void invalidCheck(int x, int y, board& b, int color, bool player) {
   if (b.invalid[!player][x][y]) return;
   bool notEdge[4] = {x > 0, x<8, y> 0, y < 8};
@@ -100,6 +105,7 @@ void invalidCheck(int x, int y, board& b, int color, bool player) {
   return;
 }
 
+//深搜更新盘面可走性
 void dfsValid(int x, int y, board& b, bool searched[9][9], int color) {
   if (x == -1 || x == 9 || y == -1 || y == 9 || searched[x][y] ||
       b.board[x][y] == -color)
@@ -150,6 +156,7 @@ void boardUpdate(board& b) {  //更新preX,preY后立即更新盘面
   return;
 }
 
+//初始化json传入的棋盘的气和可走性
 void boardInit(board& b) {
   for (int i = 0; i < 9; i++)
     for (int j = 0; j < 9; j++)
@@ -174,6 +181,7 @@ inline double getValue(board b, bool player) {
   return b.invalidNum[player] - b.invalidNum[!player];
 }
 
+//搜索树函数
 void search(treeNode* node, int& globalVisitedNum, bool player) {
   node->visitedTimes++;
   if (node->branchNum == 0) {  //叶子节点
@@ -193,9 +201,9 @@ void search(treeNode* node, int& globalVisitedNum, bool player) {
         }
       }
     }
-    if (cnt == 0) {
+    if (cnt == 0) {//终局
       node->value = INF * ((player == node->nodeBoard.player) ? -1 : 1);
-    } else {
+    } else {//不是终局
       node->branchNum = cnt;
       node->value = getValue(node->nodeBoard, player);
     }
@@ -216,7 +224,8 @@ void search(treeNode* node, int& globalVisitedNum, bool player) {
 }
 
 void computerInput(int& x, int& y, board b, bool player, Json::Value& output) {
-  // clock_t startTime = clock();
+  clock_t startTime = clock();
+  //第一步的prex,prey为-1,-1,无法输入盘面,故直接下0 0
   if (b.turn == 1) {
     x = 0;
     y = 0;
@@ -259,6 +268,7 @@ void computerInput(int& x, int& y, board b, bool player, Json::Value& output) {
 int main() {
   startTime = clock();
   board board_main;
+  memset(&board_main, 0, sizeof(board));
   string strInput;
   int x, y;
   getline(cin, strInput);
